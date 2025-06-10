@@ -52,3 +52,10 @@ Scenario:Ver detalhes do pedido no histórico
     Given eu vejo apenas o pedido de número "5555" com apenas o item “Hamburger duplo" data "20/10/2025" status "concluído"  e valor total "R$ 24,99" 
     When eu seleciono “detalhes do pedido” para o pedido “Hamburger duplo” de número "5555"
     Then eu posso ver que “Hamburger duplo” tem o valor “24,99” e numero da mesa “4”
+
+Scenario: Tentar deletar histórico vazio
+
+    Given eu vejo que o histórico não tem pedidos
+    When eu seleciono “deletar histórico”
+    Then eu vejo uma mensagem de confirmação
+    And eu vejo que o histórico não tem pedidos
