@@ -4,8 +4,8 @@ WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm ci --legacy-peer-deps
-
+RUN rm -f package-lock.json && \
+    npm install --force --legacy-peer-deps
 COPY . .
 
 EXPOSE 5173
