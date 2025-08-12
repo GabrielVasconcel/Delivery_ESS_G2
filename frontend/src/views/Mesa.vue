@@ -17,8 +17,8 @@
       </div>
 
       <!-- Navegação de Categorias -->
-      <button class="btn-categorias" @click="irParaCategorias">
-        Ver Cardapio
+      <button class="btn-categorias" @click="irParaCategorias" :disabled="categoryStore.isLoading">
+        {{ categoryStore.isLoading ? 'Carregando...' : 'Ver Cardápio' }}
       </button>
     </div>
   </div>
@@ -26,16 +26,20 @@
 
 <script>
 import { usePedidoStore } from "@/stores/pedido";
+import { useCategoryStore } from "@/stores/categoryStore";
 
 export default {
   data() {
     return {
-      categorias: [], // Aqui vamos armazenar as categorias do JSON
+      // categorias: [], // Removido
     };
   },
   computed: {
     pedidoStore() {
       return usePedidoStore();
+    },
+    categoryStore() {
+      return useCategoryStore();
     },
     mesaSelecionada: {
       get() {
@@ -46,14 +50,8 @@ export default {
       },
     },
   },
-  async created() {
-    try {
-      const res = await fetch("/dados.json"); // Lê o arquivo JSON com categorias e produtos
-      const json = await res.json();
-      this.categorias = json.categorias; // Armazenamos as categorias do JSON
-    } catch (err) {
-      console.error("Erro ao carregar categorias:", err);
-    }
+  created() {
+    this.categoryStore.fetchCategories();
   },
   methods: {
     irParaCategorias() {
@@ -62,9 +60,13 @@ export default {
         return;
       }
 
-      // Navega para a categoria padrão, que aqui pode ser "bebidas", ou qualquer outra categoria
-      // TODO: Mudar para ENTRADAS, quando tiver
-      this.$router.push(`/cardapio/${this.categorias[0].toLowerCase()}`); // Usando a primeira categoria do JSON
+      const primeiraCategoria = this.categoryStore.categories[0];
+
+      if (primeiraCategoria) {
+        this.$router.push(`/cardapio/${primeiraCategoria.toLowerCase()}`);
+      } else {
+        alert("Nenhuma categoria encontrada. O administrador precisa adicionar categorias primeiro.");
+      }
     },
   },
 };
@@ -133,5 +135,10 @@ export default {
 
 .btn-categorias:hover {
   background-color: #219150;
+}
+
+.btn-categorias:disabled {
+  background-color: #95a5a6;
+  cursor: not-allowed;
 }
 </style>

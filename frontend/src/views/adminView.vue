@@ -2,8 +2,11 @@
 import { onMounted, reactive, ref } from 'vue';
 import { useItemStore } from '../stores/itemStore';
 import type { Produto } from '../services/itemService'; 
+import { useCategoryStore } from '../stores/categoryStore';
+import GerenciadorCategorias from '../components/GerenciadorCategorias.vue';
 
 const itemStore = useItemStore();
+const categoryStore = useCategoryStore(); 
 
 // --- Lógica para Adicionar Item (RE-ADICIONADA) ---
 const newItemForm = reactive({
@@ -47,6 +50,7 @@ const handleUpdateItem = async () => {
 // Busca os itens da API quando a página é carregada
 onMounted(() => {
   itemStore.fetchItems();
+  categoryStore.fetchCategories();
 });
 </script>
 
@@ -54,29 +58,30 @@ onMounted(() => {
   <div class="admin-view">
     <h1>Painel de Administração de Itens</h1>
 
-<div class="card add-item-card">
-  <h2>Adicionar Novo Item</h2>
-  <form @submit.prevent="handleAddItem">
-    
-    <div class="form-group">
-      <input v-model="newItemForm.NOME" placeholder="Nome do Item" required />
-      <input v-model="newItemForm.DESCRICAO" placeholder="Descrição" required />
-    </div>
-    
-    <div class="form-group">
-      <input v-model.number="newItemForm.PRECO" type="number" step="0.01" placeholder="Preço" required />
-      <select v-model="newItemForm.CATEGORIA">
-        <option>BEBIDAS</option>
-        <option>LANCHES</option>
-        <option>PIZZAS</option>
-        <option>SOBREMESAS</option>
-        <option>OUTROS</option>
-      </select>
-      <button type="submit">Adicionar Item</button>
-    </div>
+    <GerenciadorCategorias />
 
-  </form>
-</div>
+    <div class="card add-item-card">
+      <h2>Adicionar Novo Item</h2>
+      <form @submit.prevent="handleAddItem">
+        
+        <div class="form-group">
+          <input v-model="newItemForm.NOME" placeholder="Nome do Item" required />
+          <input v-model="newItemForm.DESCRICAO" placeholder="Descrição" required />
+        </div>
+        
+        <div class="form-group">
+          <input v-model.number="newItemForm.PRECO" type="number" step="0.01" placeholder="Preço" required />
+          <select v-model="newItemForm.CATEGORIA" required>
+            <option disabled value="">Selecione uma categoria</option>
+            <option v-for="cat in categoryStore.categories" :key="cat" :value="cat">
+              {{ cat }}
+            </option>
+          </select>
+          <button type="submit">Adicionar Item</button>
+        </div>
+
+      </form>
+    </div>
 
     <div class="card">
       <h2>Itens Cadastrados</h2>
@@ -105,32 +110,30 @@ onMounted(() => {
   </div>
 
   <div v-if="isEditModalVisible" class="modal-overlay">
-  <div class="modal-content">
-    <h2>Editar Item: {{ editingItem?.NOME }}</h2>
-    <form @submit.prevent="handleUpdateItem" v-if="editingItem">
-      <label>Nome</label>
-      <input v-model="editingItem.NOME" required />
-      <label>Descrição</label>
-      <input v-model="editingItem.DESCRICAO" required />
-      <label>Preço</label>
-      <input v-model.number="editingItem.PRECO" type="number" step="0.01" required />
-      <label>Desconto (%)</label>
-      <input v-model.number="editingItem.DESCONTO" type="number" placeholder="Ex: 10 para 10%" />
-      <label>Categoria</label>
-      <select v-model="editingItem.CATEGORIA">
-        <option>BEBIDAS</option>
-        <option>LANCHES</option>
-        <option>PIZZAS</option>
-        <option>SOBREMESAS</option>
-        <option>OUTROS</option>
-      </select>
-      <div class="modal-actions">
-        <button type="submit" class="btn btn-save">Salvar Alterações</button>
-        <button type="button" @click="isEditModalVisible = false" class="btn btn-cancel">Cancelar</button>
-      </div>
-    </form>
+    <div class="modal-content">
+      <h2>Editar Item: {{ editingItem?.NOME }}</h2>
+      <form @submit.prevent="handleUpdateItem" v-if="editingItem">
+        <label>Nome</label>
+        <input v-model="editingItem.NOME" required />
+        <label>Descrição</label>
+        <input v-model="editingItem.DESCRICAO" required />
+        <label>Preço</label>
+        <input v-model.number="editingItem.PRECO" type="number" step="0.01" required />
+        <label>Desconto (%)</label>
+        <input v-model.number="editingItem.DESCONTO" type="number" placeholder="Ex: 10 para 10%" />
+        <label>Categoria</label>
+        <select v-model="editingItem.CATEGORIA" required>
+          <option v-for="cat in categoryStore.categories" :key="cat" :value="cat">
+            {{ cat }}
+          </option>
+        </select>
+        <div class="modal-actions">
+          <button type="submit" class="btn btn-save">Salvar Alterações</button>
+          <button type="button" @click="isEditModalVisible = false" class="btn btn-cancel">Cancelar</button>
+        </div>
+      </form>
+    </div>
   </div>
-</div>
 </template>
 
 <style scoped>
