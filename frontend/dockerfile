@@ -2,12 +2,18 @@ FROM node:22
 
 WORKDIR /app
 
+# Copia package.json e package-lock.json primeiro
 COPY package*.json ./
 
-RUN rm -f package-lock.json && \
-    npm install --force --legacy-peer-deps
+# Remove possíveis restos antigos e limpa cache antes do install
+RUN rm -rf node_modules package-lock.json
+RUN npm cache clean --force
+
+# Instala as dependências (forçando legacy-peer-deps para evitar conflitos)
+RUN npm install --legacy-peer-deps
+
+# Copia o restante do código
 COPY . .
 
-EXPOSE 5173
-
-CMD ["npm", "run", "dev", "--", "--host"]
+# Comando para rodar dev server
+CMD ["npm", "run", "dev"]
