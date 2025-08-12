@@ -27,7 +27,14 @@
       <div class="info-produto">
         <h3 class="produto_do_cardapio">{{ produto.NOME }}</h3>
         <p class="produto_do_cardapio">{{ produto.DESCRICAO }}</p>
-        <span>R$ {{ produto.PRECO.toFixed(2) }}</span>
+        <div class="price-container">
+          <span v-if="produto.DESCONTO > 0" class="original-price">
+            R$ {{ produto.PRECO.toFixed(2) }}
+          </span>
+          <span class="final-price">
+            R$ {{ calcularPrecoFinal(produto).toFixed(2) }}
+          </span>
+        </div>
       </div>
       <div class="quantidade">
         <button @click="alterarQuantidade(produto.ID, -1)">-</button>
@@ -62,12 +69,14 @@
 
 <script>
 import { usePedidoStore } from "@/stores/pedido";
+// 1. IMPORTAMOS O NOSSO COMPOSABLE
+import { useApiService } from "@/services/apiService"; 
 
 export default {
   data() {
     return {
       produtos: [],
-      categorias: [],
+      categorias: ["BEBIDAS", "LANCHES", "PIZZAS", "SOBREMESAS", "OUTROS"],
       categoria: "",
       pedidoEnviado: false,
     };
@@ -78,19 +87,27 @@ export default {
     },
   },
   async created() {
+    const { getPublicItems } = useApiService(); 
+
     try {
-      const res = await fetch("/dados.json");
-      const json = await res.json();
-      this.categorias = json.categorias;
       this.categoria = this.$route.params.categoria.toUpperCase();
-      this.produtos = json.produtos.filter(
+
+      const todosOsProdutos = await getPublicItems();
+
+      this.produtos = todosOsProdutos.filter(
         (p) => p.CATEGORIA === this.categoria
       );
     } catch (err) {
-      console.error("Erro ao carregar produtos:", err);
+      console.error("Erro ao carregar produtos da API:", err);
     }
   },
   methods: {
+    calcularPrecoFinal(produto) {
+      if (produto.DESCONTO > 0) {
+        return produto.PRECO * (1 - produto.DESCONTO / 100);
+      }
+      return produto.PRECO;
+    },
     alterarQuantidade(produtoId, delta) {
       this.pedidoStore.alterarQuantidade(produtoId, delta);
     },
@@ -402,5 +419,23 @@ export default {
   text-align: center;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
   animation: fadeInOut 2.5s ease-in-out;
+}
+.price-container {
+  margin-top: 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.original-price {
+  font-size: 0.9rem;
+  text-decoration: line-through; /* Efeito de riscado */
+  color: var(--cor-texto-secundario);
+}
+
+.final-price {
+  font-size: 1rem;
+  font-weight: bold;
+  color: hsla(160, 100%, 37%, 1); /* Cor verde de destaque */
 }
 </style>

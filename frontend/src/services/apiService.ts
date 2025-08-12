@@ -1,6 +1,7 @@
 // apiService.ts
 
 import axios from "axios";
+import type { Produto } from "./itemService";
 
 export interface ItemPedido {
   produto_id: string;
@@ -80,6 +81,12 @@ export function useApiService() {
     return response.data;
   }
 
+    async function getPublicItems(): Promise<Produto[]> {
+    // Usaremos a mesma rota GET que a página de admin usa para listar os itens
+    const response = await axios.get(`${baseUrl}/admin/items/`);
+    return response.data;
+  }
+  
   return {
     fetchData, // Função original
     // Novas funções adicionadas para histórico:
@@ -88,5 +95,6 @@ export function useApiService() {
     deletarPedidosDoHistorico,
     filtrarHistorico,
     fecharPedido,
+    getPublicItems,
   };
 }

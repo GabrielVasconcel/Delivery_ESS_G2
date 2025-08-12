@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import Categoria from '../components/Cardapio.vue'
 import Mesa from '@/views/Mesa.vue'
+import AdminView from '../views/adminView.vue'
 const routes = [
   {
     path: '/',
@@ -20,6 +21,11 @@ const routes = [
       path: "/historico",
       name: "historico",
       component: () => import("../views/HistoricoView.vue"),
+  },
+  {
+      path: '/admin/items', 
+      name: 'admin-items',
+      component: AdminView
   }
 ]
 
