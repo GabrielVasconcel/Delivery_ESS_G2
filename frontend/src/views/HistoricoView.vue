@@ -8,9 +8,9 @@
         type="text"
         v-model="termoBusca"
         placeholder="Buscar por item ou categoria..."
-        @keydown.enter="executarBusca"
+        @keydown.enter="aplicarFiltrosEBuscar"
       />
-      <button @click="executarBusca">Buscar</button>
+      <button @click="aplicarFiltrosEBuscar">Buscar</button>
     </div>
 
     <div class="area-filtros">
@@ -24,7 +24,6 @@
     </div>
 
     <div class="area-filtros">
-      <strong>Filtrar por Status:</strong>
       <div class="opcoes-filtro"></div>
 
       <div class="filtro-data">
@@ -104,17 +103,17 @@ import { ref, onMounted, watch } from "vue";
 import { useApiService } from "../services/apiService";
 import type { PedidoHistorico } from "../services/apiService";
 import { usePedidoStore } from "@/stores/pedido";
-import { useRouter } from "vue-router"; // 1. Importe o useRouter
+import { useRouter } from "vue-router";
 
 const pedidoStore = usePedidoStore();
-const router = useRouter(); // 2. Crie uma instância do router
+const router = useRouter();
 
 // Guarda o ID do pedido que está expandido. Se for 'null', nenhum está.
 const idPedidoExpandido = ref<string | null>(null);
 
 // Função para expandir/recolher um card
 function toggleExpandir(pedidoId: string) {
-  // Se o ID clicado já for o que está expandido, recolhe (ponteiro para null).
+  // Se o ID clicado já for o que está expandido, recolhe
   if (idPedidoExpandido.value === pedidoId) {
     idPedidoExpandido.value = null;
   } else {
@@ -123,7 +122,7 @@ function toggleExpandir(pedidoId: string) {
   }
 }
 
-// Função mock para o botão "Refazer Pedido"
+// Função para refazer o pedido
 function refazerPedido(pedido: PedidoHistorico) {
   pedidoStore.preencherCarrinhoComHistorico(pedido.itens);
   router.push("/cardapio/bebidas");
@@ -131,19 +130,19 @@ function refazerPedido(pedido: PedidoHistorico) {
 
 const { getHistoricoPorMesa, filtrarHistorico } = useApiService();
 
-// --- ESTADO REATIVO ---
+// ESTADO REATIVO
 const todosOsPedidos = ref<PedidoHistorico[]>([]);
 const pedidos = ref<PedidoHistorico[]>([]);
 const carregando = ref(true);
 const erro = ref<string | null>(null);
 
-// --- ESTADO PARA OS FILTROS ---
+// ESTADO PARA OS FILTROS
 const termoBusca = ref("");
 const statusDisponiveis = ref(["em andamento", "concluido", "cancelado"]);
 const statusSelecionados = ref<string[]>([]);
 const dataSelecionada = ref(""); // <-- NOVA VARIÁVEL PARA A DATA
 
-// --- FUNÇÃO DE BUSCA UNIFICADA E FINAL ---
+// FUNÇÃO DE BUSCA GERAL
 const aplicarFiltrosEBuscar = async () => {
   const mesaAtual = pedidoStore.mesa;
   carregando.value = true;
@@ -165,13 +164,13 @@ const aplicarFiltrosEBuscar = async () => {
     const statuses = statusSelecionados.value;
     const data = dataSelecionada.value;
 
-    // 1. Monta o filtro base que será comum a todas as chamadas
+    // Monta o filtro base que será comum a todas as chamadas
     const filtrosBase: { data?: string; status?: string } = {};
     if (data) {
       filtrosBase.data = data;
     }
 
-    // 2. Prepara o loop de status (se nenhum for selecionado, busca em todos)
+    // Prepara o loop de status (se nenhum for selecionado, busca em todos)
     const loopStatuses = statuses.length > 0 ? statuses : [undefined];
 
     for (const status of loopStatuses) {
@@ -246,6 +245,7 @@ onMounted(async () => {
       );
     });
 
+    todosOsPedidos.value = pedidosDaApi; // Guarda a lista completa
     pedidos.value = pedidosDaApi;
   } catch (err) {
     console.error("Falha ao buscar histórico:", err);
@@ -255,49 +255,6 @@ onMounted(async () => {
     carregando.value = false;
   }
 });
-
-const executarBusca = async () => {
-  // Se a busca estiver vazia, mostra todos os pedidos novamente
-  const mesaAtual = pedidoStore.mesa;
-
-  try {
-    const buscaPorNome = filtrarHistorico(mesaAtual, {
-      nome_item: termoBusca.value,
-    });
-    const buscaPorCategoria = filtrarHistorico(mesaAtual, {
-      categoria: termoBusca.value,
-    });
-
-    // Espera as duas buscas terminarem
-    const [resultadosNome, resultadosCategoria] = await Promise.all([
-      buscaPorNome,
-      buscaPorCategoria,
-    ]);
-
-    // Junta os resultados e remove duplicados
-    const resultadosCombinados = new Map<string, PedidoHistorico>();
-
-    resultadosNome.forEach((p) => resultadosCombinados.set(p.id_historico, p));
-    resultadosCategoria.forEach((p) =>
-      resultadosCombinados.set(p.id_historico, p)
-    );
-
-    // Converte o Map de volta para um array e ordena
-    const listaFinal = Array.from(resultadosCombinados.values());
-    listaFinal.sort(
-      (a, b) =>
-        new Date(b.data_fechamento).getTime() -
-        new Date(a.data_fechamento).getTime()
-    );
-
-    pedidos.value = listaFinal;
-  } catch (err) {
-    console.error("Falha ao filtrar histórico:", err);
-    erro.value = "Ocorreu um erro durante a busca.";
-  } finally {
-    carregando.value = false;
-  }
-};
 </script>
 
 <style scoped>
@@ -332,31 +289,30 @@ const executarBusca = async () => {
   margin-bottom: 1rem;
   background-color: var(--color-background-soft);
   cursor: pointer; /* Indica que o item é clicável */
-  transition: all 0.3s ease-in-out; /* Anima todas as propriedades */
+  transition: all 0.3s ease-in-out;
 }
 
-/* Quando o item NÃO está expandido, não muda nada */
+/* Quando o item não está expandido, não muda nada */
 .pedido-item:not(.expandido):hover {
   transform: translateY(-5px);
   box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 
-/* Quando o item ESTÁ expandido, damos um destaque */
+/* Destaca o item expandido */
 .pedido-item.expandido {
   border-color: hsla(160, 100%, 37%, 1);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* --- A MÁGICA DA ANIMAÇÃO "ACCORDION" --- */
 .detalhes-expansiveis {
   display: grid;
-  /* Por padrão, a "grade" tem altura zero, escondendo o conteúdo */
+  /* Esconde o conteúdo por padrão*/
   grid-template-rows: 0fr;
   transition: grid-template-rows 0.4s ease-in-out;
 }
 
 .pedido-item.expandido .detalhes-expansiveis {
-  /* Quando expandido, a "grade" cresce para acomodar o conteúdo */
+  /* Quando expandido, o grid cresce para acomodar o conteúdo */
   grid-template-rows: 1fr;
 }
 
@@ -366,10 +322,9 @@ const executarBusca = async () => {
   overflow: hidden;
 }
 
-/* --- ESTILOS PARA OS NOVOS ELEMENTOS --- */
 .item {
   display: flex;
-  justify-content: space-between; /* Empurra o valor para a direita */
+  justify-content: space-between;
 }
 
 .item-valor {
@@ -394,8 +349,8 @@ const executarBusca = async () => {
   color: white;
 }
 .pedido-item:hover {
-  transform: translateY(-5px); /* Levanta o card um pouco */
-  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1); /* Adiciona uma sombra mais pronunciada */
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
 }
 .pedido-header {
   display: flex;
@@ -413,7 +368,7 @@ const executarBusca = async () => {
 }
 .pedido-resumo {
   display: flex;
-  justify-content: flex-end; /* Empurra o total para a direita */
+  justify-content: flex-end;
   align-items: center;
   margin-top: 1rem;
   padding-top: 1rem;
@@ -423,10 +378,9 @@ const executarBusca = async () => {
   color: var(--color-heading);
 }
 
-/* Estilo para a área do BOTÃO */
 .pedido-acoes {
   margin-top: 1rem;
-  text-align: left; /* Alinha o botão à esquerda */
+  text-align: left;
 }
 .status {
   padding: 0.2rem 0.6rem;
@@ -440,7 +394,6 @@ const executarBusca = async () => {
   color: white;
 }
 .status.em.andamento {
-  /* Classe gerada para 'em andamento' */
   background-color: #f0ad4e;
   color: white;
 }
@@ -456,7 +409,7 @@ const executarBusca = async () => {
 }
 
 .area-busca input {
-  flex-grow: 1; /* Faz o input ocupar o máximo de espaço possível */
+  flex-grow: 1;
   padding: 0.75rem;
   font-size: 1rem;
   border: 1px solid var(--color-border);
@@ -470,7 +423,7 @@ const executarBusca = async () => {
   font-size: 1rem;
   border: none;
   border-radius: 8px;
-  background-color: hsla(160, 100%, 37%, 1); /* Cor verde do Vue */
+  background-color: hsla(160, 100%, 37%, 1);
   color: white;
   cursor: pointer;
   transition: background-color 0.2s;
@@ -485,7 +438,7 @@ const executarBusca = async () => {
   align-items: center;
   gap: 1rem;
   margin-bottom: 2rem;
-  justify-content: center; /* Centraliza o grupo de filtros */
+  justify-content: center;
   border-top: 1px solid var(--color-border);
   border-bottom: 1px solid var(--color-border);
   padding: 1rem 0;
@@ -493,7 +446,7 @@ const executarBusca = async () => {
 
 .opcoes-filtro {
   display: flex;
-  gap: 0.5rem; /* Espaçamento entre os botões */
+  gap: 0.5rem;
 }
 
 /* Esconde o checkbox padrão, mas o mantém funcional e acessível */
@@ -518,7 +471,6 @@ const executarBusca = async () => {
   text-transform: capitalize;
 }
 
-/* Efeito ao passar o mouse por cima do "botão" */
 .opcoes-filtro span:hover {
   border-color: hsla(160, 100%, 37%, 0.5);
   background-color: var(--color-background-mute);
@@ -571,10 +523,9 @@ const executarBusca = async () => {
   overflow: hidden;
 }
 
-/* Oculta o botão quando não está expandido */
 .pedido-acoes {
   opacity: 0;
-  transition: opacity 0.4s ease-in-out 0.2s; /* Adiciona um pequeno delay */
+  transition: opacity 0.4s ease-in-out 0.2s;
 }
 
 .pedido-item.expandido .pedido-acoes {

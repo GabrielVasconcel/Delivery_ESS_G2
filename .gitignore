@@ -5,3 +5,4 @@ __pycache__/
 *.swp
 ess_venv
 order_history.json
+node_modules
