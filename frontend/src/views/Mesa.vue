@@ -1,8 +1,9 @@
 <template>
   <div class="container">
-    <div class="cardapio">
-      <h1 class="titulo-restaurante">
-        Bem-vindo ao Restaurante G2-ESS-Cardapio 2025.1!
+    <div class="card">
+      <h1 class="titulo">
+        🍽️ Bem-vindo ao <br />
+        <span class="destaque">Restaurante G2-ESS-Cardápio 2025.1!</span>
       </h1>
       <p class="subtitulo">Escolha sua mesa e veja nosso cardápio completo.</p>
 
@@ -16,8 +17,8 @@
         </select>
       </div>
 
-      <!-- Navegação de Categorias -->
-      <button class="btn-categorias" @click="irParaCategorias" :disabled="categoryStore.isLoading">
+      <!-- Botão -->
+      <button class="btn" @click="irParaCategorias" :disabled="categoryStore.isLoading">
         {{ categoryStore.isLoading ? 'Carregando...' : 'Ver Cardápio' }}
       </button>
     </div>
@@ -29,11 +30,6 @@ import { usePedidoStore } from "@/stores/pedido";
 import { useCategoryStore } from "@/stores/categoryStore";
 
 export default {
-  data() {
-    return {
-      // categorias: [], // Removido
-    };
-  },
   computed: {
     pedidoStore() {
       return usePedidoStore();
@@ -43,10 +39,10 @@ export default {
     },
     mesaSelecionada: {
       get() {
-        return this.pedidoStore.mesa; // A mesa que está no store
+        return this.pedidoStore.mesa;
       },
       set(valor) {
-        this.pedidoStore.setMesa(valor); // Atualiza o valor da mesa no store e localStorage
+        this.pedidoStore.setMesa(valor);
       },
     },
   },
@@ -59,9 +55,7 @@ export default {
         alert("Por favor, selecione sua mesa antes de continuar.");
         return;
       }
-
       const primeiraCategoria = this.categoryStore.categories[0];
-
       if (primeiraCategoria) {
         this.$router.push(`/cardapio/${primeiraCategoria.toLowerCase()}`);
       } else {
@@ -73,37 +67,52 @@ export default {
 </script>
 
 <style scoped>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
 .container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  min-height: 100vh;
-  background: #f5f5f5;
-  padding: 2rem;
+
+  /* Fundo mais escuro com gradiente */
+  background: linear-gradient(135deg, #1b1f1d, #2a3b34);
+  
+  padding: 1rem;
+  z-index: 999;
 }
 
-.cardapio {
+.card {
   background: white;
   padding: 2.5rem;
-  border-radius: 12px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
   text-align: center;
   width: 100%;
-  max-width: 600px;
+  max-width: 500px;
   font-family: "Poppins", sans-serif;
 }
 
-.titulo-restaurante {
-  font-size: 2.4rem;
-  font-weight: bold;
+.titulo {
+  font-size: 2rem;
+  font-weight: 700;
   color: #2c3e50;
   margin-bottom: 1rem;
+  line-height: 1.3;
+}
+
+.destaque {
+  color: #27ae60;
 }
 
 .subtitulo {
-  font-size: 1.2rem;
-  margin-bottom: 2rem;
+  font-size: 1rem;
   color: #555;
+  margin-bottom: 2rem;
 }
 
 .selecao-mesa {
@@ -113,32 +122,42 @@ export default {
 .selecao-mesa label {
   font-weight: 500;
   margin-right: 0.5rem;
+  color: #2c3e50;
 }
 
 .selecao-mesa select {
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  border-radius: 10px;
   border: 1px solid #ccc;
   font-size: 1rem;
+  outline: none;
+  transition: border 0.3s ease;
 }
 
-.btn-categorias {
+.selecao-mesa select:focus {
+  border-color: #27ae60;
+}
+
+.btn {
   padding: 0.8rem 1.5rem;
   background-color: #27ae60;
   color: white;
   font-size: 1rem;
+  font-weight: 600;
   border: none;
-  border-radius: 8px;
+  border-radius: 10px;
   cursor: pointer;
-  transition: background 0.3s ease;
+  transition: all 0.3s ease;
 }
 
-.btn-categorias:hover {
+.btn:hover {
   background-color: #219150;
+  transform: translateY(-2px);
 }
 
-.btn-categorias:disabled {
+.btn:disabled {
   background-color: #95a5a6;
   cursor: not-allowed;
+  transform: none;
 }
 </style>

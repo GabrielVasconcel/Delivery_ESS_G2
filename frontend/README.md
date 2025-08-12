@@ -27,6 +27,12 @@ See [Vite Configuration Reference](https://vitejs.dev/config/).
 npm install
 ```
 
+## Caso de erros de dependência de biblioteca
+
+```sh
+npm install --legacy-peer-deps
+```
+
 ### Compile and Hot-Reload for Development
 
 ```sh

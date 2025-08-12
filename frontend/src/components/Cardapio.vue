@@ -51,7 +51,7 @@
     <!-- Botões de Ação -->
     <div class="botoes">
       <!-- Botão para fazer pedido -->
-      <button class="btn" @click="fazerPedido">Fazer Pedido</button>
+      <button class="btn" @click="fazerPedido">Adicionar</button>
 
       <!-- Animação de sucesso -->
       <div v-if="pedidoEnviado" class="alert-overlay">
@@ -61,8 +61,8 @@
       </div>
 
       <!-- Botões adicionais -->
-      <button class="btn" @click="irParaHistorico">Acompanhar Pedidos</button>
-      <button class="btn">Cancelar Pedidos</button>
+      <button class="btn" @click="irParaHistorico">Enviar e Acompanhar</button>
+      <button class="btn cancelar" @click="cancelarPedidos">Cancelar Pedidos</button>
     </div>
   </div>
 </template>
