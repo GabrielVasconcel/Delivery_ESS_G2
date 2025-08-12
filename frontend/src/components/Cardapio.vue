@@ -7,15 +7,15 @@
     <!-- Navegação de Categorias -->
     <div class="tabs">
       <a
-        v-for="categoria in categorias"
-        :key="categoria"
-        :href="`/cardapio/${categoria.toLowerCase()}`"
+        v-for="cat in categoryStore.categories"
+        :key="cat"
+        :href="`/cardapio/${cat.toLowerCase()}`"
         :class="[
           'tab',
-          { active: categoria.toLowerCase() === $route.params.categoria },
+          { active: cat.toLowerCase() === $route.params.categoria },
         ]"
       >
-        {{ categoria }}
+        {{ cat }}
       </a>
     </div>
 
@@ -69,14 +69,14 @@
 
 <script>
 import { usePedidoStore } from "@/stores/pedido";
-// 1. IMPORTAMOS O NOSSO COMPOSABLE
+import { useCategoryStore } from "@/stores/categoryStore";
 import { useApiService } from "@/services/apiService"; 
 
 export default {
   data() {
     return {
       produtos: [],
-      categorias: ["BEBIDAS", "LANCHES", "PIZZAS", "SOBREMESAS", "OUTROS"],
+      // categorias: ["BEBIDAS", "LANCHES", "PIZZAS", "SOBREMESAS", "OUTROS"],
       categoria: "",
       pedidoEnviado: false,
     };
@@ -85,8 +85,13 @@ export default {
     pedidoStore() {
       return usePedidoStore();
     },
+    categoryStore() {
+      return useCategoryStore();
+    }
   },
   async created() {
+    this.categoryStore.fetchCategories();
+
     const { getPublicItems } = useApiService(); 
 
     try {
